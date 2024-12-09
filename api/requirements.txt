@@ -1,0 +1,12 @@
+langchain-pinecone
+openai
+yfinance
+pydantic
+sentence-transformers
+langchain-community
+langchain-huggingface
+scikit-learn
+numpy
+fastapi
+pinecone-client
+python-dotenv
