@@ -5,42 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import StockCard from "./stock-card";
+import callApi from "../../services/stock";
+import {Company, Filters} from "./interfaces";
 
 type FilterField = "marketCap" | "volume" | "sector";
 
-const companies = [
-  {
-    name: "TechCorp",
-    description: "Leading provider of AI solutions.",
-    link: "https://techcorp.com",
-    additionalInfo: "Founded in 2010.",
-  },
-  {
-    name: "FinanceGuru",
-    description: "Innovative financial planning tools.",
-    link: "https://financeguru.com",
-  },
-  {
-    name: "Healthify",
-    description: "Revolutionizing healthcare with technology.",
-    link: "https://healthify.com",
-    additionalInfo: "Offices in 12 countries.",
-  },
-  {
-    name: "Healthify",
-    description: "Revolutionizing healthcare with technology.",
-    link: "https://healthify.com",
-    additionalInfo: "Offices in 12 countries.",
-  },
-];
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     marketCap: { operator: ">=", value: "" },
     volume: { operator: ">=", value: "" },
-    sector: { operator: "", value: "" },
+    sector: { value: "" },
   });
+  const [companies, setCompanies] = useState([])
 
   const handleFilterChange = (
     field: FilterField,
@@ -55,7 +33,11 @@ export default function Home() {
   const handleSubmit = async () => {
     try {
       //await sendMessage({ directMessage, content, attachment });
-      console.log(searchQuery);
+      console.log(searchQuery, filters);
+      const response = await callApi(searchQuery, filters);
+
+      console.log('response',response)
+      setCompanies(response.top_matches.matches)
     } catch (error) {
       /*toast.error("Failed to send a message", {
         description:
@@ -108,13 +90,12 @@ export default function Home() {
                 </select>
                 <Input
                   type="number"
-                  
                   placeholder="Value"
-                  value={filters.marketCap.value}
+                  value={filters.marketCap.value ?? ''}
                   onChange={(e) =>
                     handleFilterChange("marketCap", "value", e.target.value)
                   }
-                  className="p-2  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
             </div>
@@ -138,7 +119,7 @@ export default function Home() {
                 <Input
                   type="number"
                   placeholder="Value"
-                  value={filters.volume.value}
+                  value={filters.volume.value ?? ''}
                   onChange={(e) =>
                     handleFilterChange("volume", "value", e.target.value)
                   }
@@ -163,10 +144,10 @@ export default function Home() {
                 className="p-2  bg-black bg-opacity-50 text-white  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               >
                 <option value="">All Sectors</option>
-                <option value="technology">Technology</option>
-                <option value="healthcare">Healthcare</option>
-                <option value="finance">Finance</option>
-                <option value="energy">Energy</option>
+                <option value="Technology">Technology</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Finance">Finance</option>
+                <option value="Energy">Energy</option>
               </select>
             </div>
           </div>
@@ -176,13 +157,16 @@ export default function Home() {
 
         {/* */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {companies.map((company, index) => (
+          {companies?.map((company: Company, index) => (
             <StockCard
               key={index}
-              name={company.name}
-              description={company.description}
-              link={company.link}
-              additionalInfo={company.additionalInfo}
+              name={company.metadata.Name}
+              description={company.metadata.text}
+              city={company.metadata.City}
+              country={company.metadata.Country}
+              industry={company.metadata.Industry}
+              link={company.metadata.Link}
+              
             />
           ))}
         </div>

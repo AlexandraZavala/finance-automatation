@@ -13,6 +13,9 @@ import os
 from dotenv import load_dotenv
 import logging
 from typing import Optional, Dict
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 load_dotenv()
 
@@ -38,6 +41,13 @@ hf_embeddings = HuggingFaceEmbeddings()
 vectorstore = PineconeVectorStore(index_name=index_name, embedding=hf_embeddings)
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Adjust this to your needs (e.g., specify allowed origins)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods (GET, POST, OPTIONS, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
 
 def get_huggingface_embeddings(text, model_name="sentence-transformers/all-mpnet-base-v2"):
     """
@@ -107,8 +117,11 @@ def perform_rag(query, filter_criteria):
             {"role": "user", "content": augmented_query}
         ]
     )
-
-    return llm_response.choices[0].message.content
+    #print(top_matches)
+    return {
+        "response": llm_response.choices[0].message.content,
+        "top_matches": top_matches.to_dict()  # Añadir top_matches a la respuesta
+    }
 
 class QueryFilters(BaseModel):
     market_cap_min: Optional[float] = None
@@ -130,7 +143,7 @@ async def rag_query(data: RAGQuery ):
     try:
         pinecone_filters = {}
         filters = data.filters
-        print(filters)
+        print(data)
         if filters:
             filters = filters.dict(exclude_none=True)
 
@@ -150,9 +163,14 @@ async def rag_query(data: RAGQuery ):
                 pinecone_filters["Enterprise Value"]["$lte"] = filters["entreprise_value_max"]
 
         print(pinecone_filters)
+
         response = perform_rag(data.query, pinecone_filters)
-        print(response)
-        return {"query": data.query, "response": response}
+        #print(response)
+        return {
+            "query": data.query,
+            "response": response["response"],  # Assuming response_data is a dict
+            "top_matches": response["top_matches"]  # Ensure this is also serializable
+        }
     except Exception as e:
         logger.error(f"Error ejecutando perform_rag: {e}")
         raise HTTPException(status_code=500, detail=f"Error performing rag: {str(e)}")
