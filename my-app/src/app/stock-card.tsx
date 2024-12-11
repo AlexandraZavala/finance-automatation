@@ -7,7 +7,7 @@ interface StockCardProps {
   country: string;
   industry: string;
   link: string;
-  additionalInfo?: string; // Campo opcional
+  additionalInfo?: string; 
 }
 
 const StockCard: React.FC<StockCardProps> = ({

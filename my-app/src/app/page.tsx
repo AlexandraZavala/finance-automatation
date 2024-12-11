@@ -6,10 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import StockCard from "./stock-card";
 import callApi from "../../services/stock";
-import {Company, Filters} from "./interfaces";
+import { Company, Filters } from "./interfaces";
 
 type FilterField = "marketCap" | "volume" | "sector";
-
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -18,7 +17,8 @@ export default function Home() {
     volume: { operator: ">=", value: "" },
     sector: { value: "" },
   });
-  const [companies, setCompanies] = useState([])
+  const [companies, setCompanies] = useState([]);
+  const [chatResponse, setChatResponse] = useState("");
 
   const handleFilterChange = (
     field: FilterField,
@@ -36,8 +36,9 @@ export default function Home() {
       console.log(searchQuery, filters);
       const response = await callApi(searchQuery, filters);
 
-      console.log('response',response)
-      setCompanies(response.top_matches.matches)
+      console.log("response", response);
+      setCompanies(response.top_matches.matches);
+      setChatResponse(response.response);
     } catch (error) {
       /*toast.error("Failed to send a message", {
         description:
@@ -49,7 +50,9 @@ export default function Home() {
   return (
     <div className="m-4">
       <header className="flex flex-col items-center justify-center p-4 mb-2">
-        <h1 className="font-bold text-4xl text-white">Automated Stock Analysis</h1>
+        <h1 className="font-bold text-4xl text-white">
+          FinanceFast: Automated Stock Analysis
+        </h1>
       </header>
       <div className="mx-16 ">
         {/*<p className="text-center my-4 text-gray-300">
@@ -69,7 +72,7 @@ export default function Home() {
             <span className="sr-only">Send</span>
           </Button>
         </div>
-        
+
         <div className="mb-8 mt-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {/* Market Cap Filter */}
@@ -91,7 +94,7 @@ export default function Home() {
                 <Input
                   type="number"
                   placeholder="Value"
-                  value={filters.marketCap.value ?? ''}
+                  value={filters.marketCap.value ?? ""}
                   onChange={(e) =>
                     handleFilterChange("marketCap", "value", e.target.value)
                   }
@@ -119,7 +122,7 @@ export default function Home() {
                 <Input
                   type="number"
                   placeholder="Value"
-                  value={filters.volume.value ?? ''}
+                  value={filters.volume.value ?? ""}
                   onChange={(e) =>
                     handleFilterChange("volume", "value", e.target.value)
                   }
@@ -153,8 +156,6 @@ export default function Home() {
           </div>
         </div>
 
-        
-
         {/* */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {companies?.map((company: Company, index) => (
@@ -166,10 +167,17 @@ export default function Home() {
               country={company.metadata.Country}
               industry={company.metadata.Industry}
               link={company.metadata.Link}
-              
             />
           ))}
         </div>
+        {chatResponse ? (
+          <div className="p-2 my-10 mr-2 bg-black bg-opacity-50 text-white border-0 rounded-md">
+            <div className="m-5">
+              <strong>Agent: </strong>:
+              <p className="mt-2">{chatResponse}</p>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

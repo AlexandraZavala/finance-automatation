@@ -108,8 +108,12 @@ def perform_rag(query, filter_criteria):
     
     contexts = [item['metadata']['text'] for item in top_matches['matches']]
     augmented_query = "<CONTEXT>\n" + "\n\n-------\n\n".join(contexts[ : 10]) + "\n-------\n</CONTEXT>\n\n\n\nMY QUESTION:\n" + query
-    system_prompt = f"""You are an expert at providing answers about stocks. Please answer my question provided. If {filter_criteria} is not null or empty, consider each filter in the explanation."""
-
+    system_prompt = f"""
+        You are a friendly and empathetic financial advisor with expertise in stock market analysis.
+        Provide clear and helpful answers to the questions asked, offering thoughtful recommendations tailored to the context.
+        Respond in an approachable yet professional tone, ensuring that your advice is cautious and well-considered to support informed decision-making.
+        Think step by step.
+        """
     llm_response = client.chat.completions.create(
         model="llama-3.1-70b-versatile",
         messages=[
